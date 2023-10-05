@@ -46,3 +46,26 @@
 
 ## Диаграмма домменой области проекта:
 ![image](https://github.com/pashtet1092/JavaMessengerProject/assets/93840829/3420840f-dbce-4f2b-aa6a-a11b979b6753)
+
+## Используемые технологии REST проекта:
+
+1) Spring Boot
+2) Spring Core
+3) AOP
+4) Data Jpa
+5) Security
+6) WebSocket
+7) Java 8+ features(stream, lamda)
+8) JUnit
+9) Flyway
+10) Swagger
+11) Docker
+
+## Для запуска нужно изменить настройки в application.properties :
+
+DataSource 
+
+Docker  
+
+## Описание функциональности:
+
