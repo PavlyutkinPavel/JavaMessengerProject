@@ -38,9 +38,6 @@ public class Message {
     @Column(name = "sender")
     private String sender;
 
-    @Column(name = "chat_id")
-    private Long chatId;
-
     @Column(name = "message_type")
     @Enumerated(EnumType.STRING)
     private MessageType type;

@@ -19,7 +19,7 @@ public class User {
     @SequenceGenerator(name = "mySeqGen", sequenceName = "users_id_seq", allocationSize = 1)//для нерандомных id а по sequence
     @GeneratedValue(generator = "mySeqGen")
     //@TableGenerator()
-    private Integer id;
+    private Long id;
 
     @Column(name = "first_name")
     private String firstName;
@@ -30,7 +30,7 @@ public class User {
     @Column(name = "created")
     private LocalDateTime createdAt;
 
-    @ManyToMany(mappedBy = "books", fetch = FetchType.EAGER)
+    @ManyToMany(mappedBy = "users", fetch = FetchType.EAGER)
     private Collection<Chat> chats;
 
 }

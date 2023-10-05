@@ -31,7 +31,7 @@ public class Chat {
     private String chatName;
 
     @Column(name = "chat_description")
-    private String name;
+    private String description;
 
     @JsonBackReference
     @ManyToMany(fetch = FetchType.EAGER)

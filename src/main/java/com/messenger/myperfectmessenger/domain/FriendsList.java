@@ -7,6 +7,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.SequenceGenerator;
 import lombok.Data;
 
+import java.time.LocalDate;
 import java.util.Date;
 
 @Entity(name = "friends_lists")
@@ -21,6 +22,6 @@ public class FriendsList {
     private Boolean isClose;
 
     @Column(name = "friends_since")
-    private Date friendSince;
+    private LocalDate friendSince;
 
 }
