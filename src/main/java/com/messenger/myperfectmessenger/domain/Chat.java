@@ -14,9 +14,11 @@ import jakarta.persistence.SequenceGenerator;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
+import org.springframework.stereotype.Component;
 
 import java.util.Collection;
 
+@Component
 @Entity(name = "chats")
 @Data
 @EqualsAndHashCode(exclude = {"users", "messages"})
@@ -33,11 +35,14 @@ public class Chat {
     @Column(name = "chat_description")
     private String description;
 
+    @Column(name = "chat_creator")
+    private String creator;
+
     @JsonBackReference
     @ManyToMany(fetch = FetchType.EAGER)
-    @JoinTable(name = "l_users_chats", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "chat_id"))
+    @JoinTable(name = "l_users_chats", joinColumns = @JoinColumn(name = "chat_id"), inverseJoinColumns = @JoinColumn(name = "user_id"))
     private Collection<User> users;
 
-    @OneToMany(mappedBy = "chats", fetch = FetchType.EAGER)//название связанного поля, EAGER - все, LAZY - никакие
+    @OneToMany(mappedBy = "chats", fetch = FetchType.EAGER)
     private Collection<Message> messages;
 }

@@ -8,6 +8,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Lob;
 import jakarta.persistence.SequenceGenerator;
 import lombok.Data;
+import org.hibernate.annotations.Type;
 
 import java.util.Date;
 
@@ -18,7 +19,7 @@ public class UserProfile {
     @Id
     @SequenceGenerator(name = "mySeqGen", sequenceName = "user_profile_id_seq", allocationSize = 1)//для нерандомных id а по sequence
     @GeneratedValue(generator = "mySeqGen")
-    private Integer id;
+    private Long id;
 
     @Column(name = "user_id")
     private Long userId;
@@ -30,6 +31,6 @@ public class UserProfile {
     private Date dateOfBirth;
 
     @Lob
-    @Column(name = "profile_image")
-    private byte[] profileImage; // Поле для хранения изображения профиля в виде байтов
+    @Column(name = "image", columnDefinition = "clob")
+    private Long profileImage; // Поле для хранения изображения профиля в виде байтов
 }

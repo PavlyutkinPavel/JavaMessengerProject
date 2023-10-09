@@ -11,37 +11,31 @@ import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.SequenceGenerator;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
-import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Collection;
-import java.util.Date;
 
-@Entity(name = "friends_lists")
 @Data
-@Component
-@EqualsAndHashCode(exclude = {"users"})
-@ToString(exclude = {"users"})
-public class FriendsList {
+@Entity(name = "friend_requests")
+public class FriendRequest {
     @Id
     @SequenceGenerator(name = "mySeqGen", sequenceName = "friends_lists_id_seq", allocationSize = 1)//для нерандомных id а по sequence
     @GeneratedValue(generator = "mySeqGen")
     private Long id;
 
-    @Column(name = "close_friend")
-    private Boolean isClose;
+    @Column(name = "sender")
+    private String sender;
 
-    @Column(name = "friends_since")
-    private LocalDate friendSince;
+    @Column(name = "friend")
+    private String friend;
 
-    @Column(name = "friend_name")
-    private String friendName;
+    @Column(name = "request_message")
+    private String requestMessage;
 
-    @JsonBackReference
-    @ManyToMany(fetch = FetchType.EAGER)
-    @JoinTable(name = "l_users_friends_lists", joinColumns = @JoinColumn(name = "friend_id"), inverseJoinColumns = @JoinColumn(name = "user_id"))
-    private Collection<User> users;
+    @Column(name = "send_time")
+    private LocalDateTime sendTime;
 
+    @Column(name = "is_accepted")
+    private Boolean isAccepted;
 }
