@@ -1,7 +1,10 @@
 package com.messenger.myperfectmessenger.controller;
 
+import com.messenger.myperfectmessenger.domain.FriendsList;
+import com.messenger.myperfectmessenger.domain.User;
 import com.messenger.myperfectmessenger.domain.UserProfile;
 import com.messenger.myperfectmessenger.exception.UserNotFoundException;
+import com.messenger.myperfectmessenger.security.service.SecurityService;
 import com.messenger.myperfectmessenger.service.UserProfileService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,33 +20,57 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.security.Principal;
 import java.util.List;
+import java.util.Optional;
 
 @RestController //для REST архитектуры
 @RequestMapping("/user_profile")
 public class UserProfileController {
     private final UserProfileService userProfileService;
+    private final SecurityService securityService;
 
-    public UserProfileController(UserProfileService userProfileService) {
+    private final Path ROOT_FILE_PATH = Paths.get("src/main/resources/static/images");
+
+    public UserProfileController(UserProfileService userProfileService, SecurityService securityService) {
         this.userProfileService = userProfileService;
+        this.securityService = securityService;
     }
 
     @GetMapping
-    public ResponseEntity<List<UserProfile>> getUserProfiles() {
-        List<UserProfile> userProfiles = userProfileService.getUserProfiles();
-        if (userProfiles.isEmpty()) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        } else {
-            return new ResponseEntity<>(userProfiles, HttpStatus.OK);
+    public ResponseEntity<List<UserProfile>> getUserProfiles(Principal principal) {
+        if(securityService.checkIfAdmin(principal.getName())){
+            List<UserProfile> userProfiles = userProfileService.getUserProfiles();
+            if (userProfiles.isEmpty()) {
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            } else {
+                return new ResponseEntity<>(userProfiles, HttpStatus.OK);
+            }
+        } else{
+            return new ResponseEntity<>(HttpStatus.FORBIDDEN);
         }
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<UserProfile> getUserProfile(@PathVariable Long id) {
-        UserProfile userProfile = userProfileService.getUserProfile(id).orElseThrow(UserNotFoundException::new);
+    public ResponseEntity<UserProfile> getUserProfile(@PathVariable Long id, Principal principal) {
+        UserProfile userProfile = userProfileService.getUserProfile(id, principal);
+        if(userProfile != null){
+            return new ResponseEntity<>(userProfile, HttpStatus.OK);
+        }else {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+    }
+
+    @GetMapping("/friend/{id}")
+    public ResponseEntity<UserProfile> getFriendUserProfile(@PathVariable Long id, Principal principal) {
+        UserProfile userProfile = userProfileService.getFriendUserProfile(id, principal).orElseThrow(UserNotFoundException::new);
         return new ResponseEntity<>(userProfile, HttpStatus.OK);
     }
 
+    //maybe should be deleted(or only for admins)
     @PostMapping
     public ResponseEntity<HttpStatus> createUserProfile(@RequestBody UserProfile userProfile) {
         userProfileService.createUserProfile(userProfile);
@@ -51,21 +78,38 @@ public class UserProfileController {
     }
 
     @PutMapping
-    public ResponseEntity<HttpStatus> updateUserProfile(@RequestBody UserProfile userProfile) {
-        userProfileService.updateUserProfile(userProfile);
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    public ResponseEntity<HttpStatus> updateUserProfile(@RequestBody UserProfile userProfile, Principal principal) {
+        if(securityService.checkIfAdmin(principal.getName()) || (securityService.getUserIdByLogin(principal.getName())==userProfile.getUserId())){
+            userProfileService.updateUserProfile(userProfile);
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        }else {
+            return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+        }
     }
 
-    @PutMapping("/update_profile_image/{userId}")
-    public ResponseEntity<String> updateProfileImage(@PathVariable Long userId, @RequestParam("file") MultipartFile file) throws IOException {
-        userProfileService.updateProfileImage(userId, file.getBytes());
-        return new ResponseEntity<>("Profile image updated successfully", HttpStatus.NO_CONTENT);
+    @PutMapping("/upload/{id}")
+    public ResponseEntity<HttpStatus> updateProfileImage(@PathVariable Long id, @RequestParam("file") MultipartFile file, Principal principal) {
+        if(securityService.checkIfAdmin(principal.getName()) || (securityService.getUserIdByLogin(principal.getName())==id)){
+            try {
+                UserProfile userProfile = userProfileService.getUserProfile(id, principal);
+                userProfile.setProfileImage(Files.copy(file.getInputStream(), this.ROOT_FILE_PATH.resolve(file.getOriginalFilename())));
+                return new ResponseEntity<>(HttpStatus.CREATED);
+            } catch (IOException e) {
+                System.out.println(e);
+            }
+            return new ResponseEntity<>(HttpStatus.CONFLICT);
+        }else {
+            return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+        }
     }
-
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<HttpStatus> deleteUserProfile(@PathVariable Long id) {
-        userProfileService.deleteUserProfileById(id);
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    public ResponseEntity<HttpStatus> deleteUserProfile(@PathVariable Long id, Principal principal) {
+        if(securityService.checkIfAdmin(principal.getName()) || (securityService.getUserIdByLogin(principal.getName())==userProfileService.getUserProfile(id, principal).getUserId())){
+            userProfileService.deleteUserProfileById(id);
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        }else {
+            return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+        }
     }
 }
