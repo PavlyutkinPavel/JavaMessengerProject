@@ -47,4 +47,21 @@ public class FriendsListRepository {
                 .setParameter("friendSince", friendSince)
                 .getResultList();
     }
+
+//    public Optional<FriendsList> findByUsersIdAndFriendId(Long userId, Long friendId) {
+//        try {
+//            return Optional.ofNullable(entityManager.createQuery(
+//                            "SELECT fl FROM friends_lists fl " +
+//                                    "JOIN fl.users u1 " +
+//                                    "JOIN fl.users u2 " +
+//                                    "WHERE u1.id = :userId AND u2.id = :friendId", FriendsList.class)
+//                    .setParameter("userId", userId)
+//                    .setParameter("friendId", friendId)
+//                    .getSingleResult());
+//        } catch (Exception e) {
+//            return Optional.empty();
+//        }
+//    }
+
+
 }
