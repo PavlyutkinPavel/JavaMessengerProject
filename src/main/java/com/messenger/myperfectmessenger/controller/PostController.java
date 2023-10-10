@@ -5,6 +5,8 @@ import com.messenger.myperfectmessenger.domain.User;
 import com.messenger.myperfectmessenger.security.service.SecurityService;
 import com.messenger.myperfectmessenger.service.PostService;
 import com.messenger.myperfectmessenger.exception.PostNotFoundException;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -13,6 +15,7 @@ import java.security.Principal;
 import java.util.HashMap;
 import java.util.List;
 
+@Tag(name = "Post Controller", description = "Makes all operations with posts")
 @RestController
 @RequestMapping("/post")
 public class PostController {
@@ -26,6 +29,7 @@ public class PostController {
         this.securityService = securityService;
     }
 
+    @Operation(summary = "get all posts(for authorized users)")
     @GetMapping
     public ResponseEntity<List<Post>> getPosts(Principal principal) {
         List<Post> posts = postService.getPosts();
@@ -36,18 +40,21 @@ public class PostController {
         }
     }
 
+    @Operation(summary = "get post(for authorized users)")
     @GetMapping("/{id}")
     public ResponseEntity<Post> getPost(@PathVariable Long id) {
         Post post = postService.getPost(id).orElseThrow(PostNotFoundException::new);
         return new ResponseEntity<>(post, HttpStatus.OK);
     }
 
+    @Operation(summary = "create post(for authorized users)")
     @PostMapping
     public ResponseEntity<HttpStatus> createPost(@RequestBody Post post) {
         postService.createPost(post);
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
 
+    @Operation(summary = "create post(for creator)")
     @PutMapping
     public ResponseEntity<HttpStatus> updatePost(@RequestBody Post post, Principal principal) {
         if(securityService.checkIfAdmin(principal.getName()) || (post.getUserId() == securityService.getUserIdByLogin(principal.getName()))){
@@ -58,6 +65,7 @@ public class PostController {
         }
     }
 
+    @Operation(summary = "delete post(for creator)")
     @DeleteMapping("/{id}")
     public ResponseEntity<HttpStatus> deletePost(@PathVariable Long id, Principal principal) {
         if(securityService.checkIfAdmin(principal.getName()) || (getPost(id).getBody().getUserId() == securityService.getUserIdByLogin(principal.getName()))){
@@ -68,6 +76,7 @@ public class PostController {
         }
     }
 
+    @Operation(summary = "get post statistics(for all users)")
     @GetMapping("/statistics/{id}")
     public ResponseEntity<HashMap<String, Long>> getPostStatistics(@PathVariable Long id) {
         Post post = postService.getPost(id).orElseThrow(PostNotFoundException::new);
@@ -78,12 +87,15 @@ public class PostController {
 
         return new ResponseEntity<>(statistics, HttpStatus.OK);
     }
+
+    @Operation(summary = "put like to post(for all users)")
     @PutMapping("/like/{id}")
     public ResponseEntity<HashMap<String, Long>> putLike(@PathVariable Long id) {
         postService.putLike(id);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
+    @Operation(summary = "put dislike to post(for all users)")
     @PutMapping("/dislike/{id}")
     public ResponseEntity<HashMap<String, Long>> putDislike(@PathVariable Long id) {
         postService.putDislike(id);

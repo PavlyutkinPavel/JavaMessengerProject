@@ -6,6 +6,8 @@ import com.messenger.myperfectmessenger.domain.UserProfile;
 import com.messenger.myperfectmessenger.exception.UserNotFoundException;
 import com.messenger.myperfectmessenger.security.service.SecurityService;
 import com.messenger.myperfectmessenger.service.UserProfileService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -27,6 +29,7 @@ import java.security.Principal;
 import java.util.List;
 import java.util.Optional;
 
+@Tag(name = "UserProfile Controller", description = "Make all operations with your profile")
 @RestController //для REST архитектуры
 @RequestMapping("/user_profile")
 public class UserProfileController {
@@ -40,6 +43,7 @@ public class UserProfileController {
         this.securityService = securityService;
     }
 
+    @Operation(summary = "get all profiles(for admins)")
     @GetMapping
     public ResponseEntity<List<UserProfile>> getUserProfiles(Principal principal) {
         if(securityService.checkIfAdmin(principal.getName())){
@@ -54,6 +58,7 @@ public class UserProfileController {
         }
     }
 
+    @Operation(summary = "get your user profile")
     @GetMapping("/{id}")
     public ResponseEntity<UserProfile> getUserProfile(@PathVariable Long id, Principal principal) {
         UserProfile userProfile = userProfileService.getUserProfile(id, principal);
@@ -63,20 +68,21 @@ public class UserProfileController {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
     }
-
+    @Operation(summary = "get your friend user profile")
     @GetMapping("/friend/{id}")
     public ResponseEntity<UserProfile> getFriendUserProfile(@PathVariable Long id, Principal principal) {
         UserProfile userProfile = userProfileService.getFriendUserProfile(id, principal).orElseThrow(UserNotFoundException::new);
         return new ResponseEntity<>(userProfile, HttpStatus.OK);
     }
 
-    //maybe should be deleted(or only for admins)
+    @Operation(summary = "create user profile")
     @PostMapping
     public ResponseEntity<HttpStatus> createUserProfile(@RequestBody UserProfile userProfile) {
         userProfileService.createUserProfile(userProfile);
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
 
+    @Operation(summary = "update your user profile")
     @PutMapping
     public ResponseEntity<HttpStatus> updateUserProfile(@RequestBody UserProfile userProfile, Principal principal) {
         if(securityService.checkIfAdmin(principal.getName()) || (securityService.getUserIdByLogin(principal.getName())==userProfile.getUserId())){
@@ -87,6 +93,7 @@ public class UserProfileController {
         }
     }
 
+    @Operation(summary = "update your user profile picture")
     @PutMapping("/upload/{id}")
     public ResponseEntity<HttpStatus> updateProfileImage(@PathVariable Long id, @RequestParam("file") MultipartFile file, Principal principal) {
         if(securityService.checkIfAdmin(principal.getName()) || (securityService.getUserIdByLogin(principal.getName())==id)){
@@ -103,6 +110,7 @@ public class UserProfileController {
         }
     }
 
+    @Operation(summary = "delete your user profile")
     @DeleteMapping("/{id}")
     public ResponseEntity<HttpStatus> deleteUserProfile(@PathVariable Long id, Principal principal) {
         if(securityService.checkIfAdmin(principal.getName()) || (securityService.getUserIdByLogin(principal.getName())==userProfileService.getUserProfile(id, principal).getUserId())){

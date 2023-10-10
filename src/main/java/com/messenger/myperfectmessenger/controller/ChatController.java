@@ -5,6 +5,8 @@ import com.messenger.myperfectmessenger.domain.Message;
 import com.messenger.myperfectmessenger.security.repository.SecurityCredentialsRepository;
 import com.messenger.myperfectmessenger.security.service.SecurityService;
 import com.messenger.myperfectmessenger.service.ChatService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -20,6 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.security.Principal;
 import java.util.List;
 
+@Tag(name = "Chat Controller", description = "Main controller, makes all operations with chats")
 @RestController //для REST архитектуры
 @RequestMapping("/chat")
 public class ChatController {
@@ -34,6 +37,7 @@ public class ChatController {
         this.securityCredentialsRepository = securityCredentialsRepository;
     }
 
+    @Operation(summary = "get all chats in app")
     @GetMapping
     public ResponseEntity<List<Chat>> getChats(Principal principal) {
         if(securityService.checkIfAdmin(principal.getName())){
@@ -48,6 +52,7 @@ public class ChatController {
         }
     }
 
+    @Operation(summary = "user can get all his chats in app")
     @GetMapping("/chat_list_of_user/{username}")
     public ResponseEntity<List<Chat>> getChatList(Principal principal, @PathVariable String username) {
         if(username == principal.getName() || securityService.checkIfAdmin(principal.getName())){
@@ -62,6 +67,7 @@ public class ChatController {
     }
 
     //no security because chat don't have active user
+    @Operation(summary = "user can get any chat he has in app")
     @GetMapping("/{id}")
     public ResponseEntity<Chat> getChat(@PathVariable Long id, Principal principal) {
         Chat chat = chatService.getChat(id, principal);
@@ -72,6 +78,7 @@ public class ChatController {
         }
     }
 
+    @Operation(summary = "user can get all chat messages he has in his chats")
     @GetMapping("/messages/{id}")
     public ResponseEntity<List<Message>> getChatMessages(@PathVariable Long id, Principal principal) {
         List<Message> messages = chatService.getChatMessages(id, principal);
@@ -83,6 +90,7 @@ public class ChatController {
     }
 
     // Найти определенное сообщение в чате по его id
+    @Operation(summary = "user can get chat message he has in his chats")
     @GetMapping("/{chatId}/find_message/{messageId}")
     public ResponseEntity<Message> findMessage(@PathVariable Long chatId, @PathVariable Long messageId, Principal principal) {
         Message message = chatService.findMessage(chatId, messageId, principal);
@@ -93,12 +101,14 @@ public class ChatController {
         }
     }
 
+    @Operation(summary = "users can create their own chats")
     @PostMapping
     public ResponseEntity<HttpStatus> createChat(@RequestBody Chat chat) {
         chatService.createChat(chat);
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
 
+    @Operation(summary = "admins can update their own chats")
     @PutMapping
     public ResponseEntity<HttpStatus> updateChat(@RequestBody Chat chat, Principal principal) {
         if(securityService.checkIfAdmin(principal.getName())){
@@ -109,6 +119,7 @@ public class ChatController {
         }
     }
 
+    @Operation(summary = "users can update name of their own chats")
     @PutMapping("/update_name/{id}")
     public ResponseEntity<HttpStatus> updateChatName(@PathVariable Long id, @RequestParam String newChatName, Principal principal) {
         if(securityService.checkIfAdmin(principal.getName())){
@@ -119,6 +130,7 @@ public class ChatController {
         }
     }
 
+    @Operation(summary = "users can update description of their own chats")
     @PutMapping("/update_description/{id}")
     public ResponseEntity<HttpStatus> updateChatDescription(@PathVariable Long id, @RequestParam String newChatDescription, Principal principal) {
         if(securityService.checkIfAdmin(principal.getName())){
@@ -129,6 +141,7 @@ public class ChatController {
         }
     }
 
+    @Operation(summary = "admins can delete their own chats")
     @DeleteMapping("/{id}")
     public ResponseEntity<HttpStatus> deleteChat(@PathVariable Long id, Principal principal) {
         if(securityService.checkIfAdmin(principal.getName())){
@@ -140,6 +153,8 @@ public class ChatController {
     }
 
     // Очистить все сообщения в чате по его id
+
+    @Operation(summary = "admins can clear all chat history")
     @DeleteMapping("/clear_messages/{chatId}")
     public ResponseEntity<HttpStatus> clearAllMessages(@PathVariable Long chatId, Principal principal) {
         if(securityService.checkIfAdmin(principal.getName())){
@@ -151,6 +166,7 @@ public class ChatController {
     }
 
     // Очистить определенное сообщение в чате по его id
+    @Operation(summary = "admins can clear any message from their own chats")
     @DeleteMapping("/{chatId}/delete_message/{messageId}")
     public ResponseEntity<HttpStatus> deleteMessage(@PathVariable Long chatId, @PathVariable Long messageId, Principal principal) {
         if(securityService.checkIfAdmin(principal.getName())){
@@ -161,6 +177,7 @@ public class ChatController {
         }
     }
 
+    @Operation(summary = "admins can delete users from their own chats")
     @DeleteMapping("/{chatId}/delete_user/{userId}")
     public ResponseEntity<HttpStatus> deleteUser(@PathVariable Long chatId, @PathVariable Long userId, Principal principal) {
         if(securityService.checkIfAdmin(principal.getName())){
@@ -170,6 +187,7 @@ public class ChatController {
         return new ResponseEntity<>(HttpStatus.FORBIDDEN);
     }
 
+    @Operation(summary = "users can leave chat")
     @DeleteMapping("/{chatId}/leave_chat/{username}")
     public ResponseEntity<HttpStatus> leaveChat(@PathVariable Long chatId, @PathVariable String username, Principal principal) {
         deleteUser(chatId, securityService.getUserIdByLogin(username),principal);

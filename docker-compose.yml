@@ -1,20 +1,21 @@
 version: '3.7'
 
 services:
-  custom-app:
-    container_name: custom-app
-    image: pavellpp/app:v2
+  messenger:
+    container_name: messenger
+    image: pavellpp/messenger:v16
+
     ports:
       - "8080:8080"
     environment:
-      - DB_HOST=db
+      - DB_HOST=database
     depends_on:
-      - db
+      - database
     networks:
       - backend
 
-  db:
-    container_name: db
+  database:
+    container_name: database
     ports:
       - "5432:5432"
     image: postgres

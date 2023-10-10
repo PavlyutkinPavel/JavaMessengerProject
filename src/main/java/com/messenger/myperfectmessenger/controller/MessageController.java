@@ -1,9 +1,12 @@
 package com.messenger.myperfectmessenger.controller;
 
 import com.messenger.myperfectmessenger.domain.Message;
-import com.messenger.myperfectmessenger.exception.MessageNotFoundException;
+import com.messenger.myperfectmessenger.security.controller.SecurityController;
+import com.messenger.myperfectmessenger.security.domain.RegistrationDTO;
 import com.messenger.myperfectmessenger.security.service.SecurityService;
 import com.messenger.myperfectmessenger.service.MessageService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.MessageMapping;
@@ -31,17 +34,22 @@ import java.util.Objects;
 
 @RestController //для REST архитектуры
 @RequestMapping("/message")
+@Tag(name = "Message Controller", description = "Main controller, makes all operations with chats")
 public class MessageController {
     private final MessageService messageService;
     private final SecurityService securityService;
 
+    private final SecurityController securityController;
+
     private final Path ROOT_FILE_PATH = Paths.get("src/main/resources/static/file_messages");
 
-    public MessageController(MessageService messageService, SecurityService securityService) {
+    public MessageController(MessageService messageService, SecurityService securityService, SecurityController securityController) {
         this.messageService = messageService;
         this.securityService = securityService;
+        this.securityController = securityController;
     }
 
+    @Operation(summary = "get all messages(for admins)")
     @GetMapping
     public ResponseEntity<List<Message>> getMessages(Principal principal) {
         if(securityService.checkIfAdmin(principal.getName())){
@@ -56,6 +64,7 @@ public class MessageController {
         }
     }
 
+    @Operation(summary = "get message(for authorized users)")
     @GetMapping("/{id}")
     public ResponseEntity<Message> getMessage(@PathVariable Long id, Principal principal) {
         Message message = messageService.getMessage(id, principal);
@@ -66,12 +75,14 @@ public class MessageController {
         }
     }
 
+    @Operation(summary = "create messages(for authorized users)")
     @PostMapping
     public ResponseEntity<HttpStatus> createMessage(@RequestBody Message message) {
         messageService.createMessage(message);
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
 
+    @Operation(summary = "create file message(for authorized users)")
     @PostMapping("/file")
     public ResponseEntity<HttpStatus> createFileMessage(@RequestParam("file") MultipartFile file) {
         try{
@@ -83,6 +94,7 @@ public class MessageController {
         return new ResponseEntity<>(HttpStatus.CONFLICT);
     }
 
+    @Operation(summary = "update message(for authorized users)")
     @PutMapping
     public ResponseEntity<HttpStatus> updateMessage(@RequestBody Message message, Principal principal) {
         if(securityService.checkIfAdmin(principal.getName()) || (Objects.equals(message.getSender(), principal.getName()))){
@@ -93,6 +105,7 @@ public class MessageController {
         }
     }
 
+    @Operation(summary = "delete message(for authorized users and admins)")
     @DeleteMapping("/{id}")
     public ResponseEntity<HttpStatus> deleteMessage(@PathVariable Long id, Principal principal) {
         if(securityService.checkIfAdmin(principal.getName()) || (Objects.equals(messageService.getMessage(id, principal).getSender(), principal.getName()))){
@@ -104,6 +117,7 @@ public class MessageController {
     }
 
     //very strong!
+    @Operation(summary = "delete all messages(for admins)")
     @DeleteMapping("/delete_all_messages")
     public ResponseEntity<HttpStatus> deleteAllMessages(Principal principal) {
         if(securityService.checkIfAdmin(principal.getName())){
@@ -114,6 +128,7 @@ public class MessageController {
         }
     }
 
+    @Operation(summary = "send message(websocket)")
     @MessageMapping("/chat.sendMessage")
     @SendTo("/topic/public")
     public Message sendMessage(
@@ -122,6 +137,7 @@ public class MessageController {
         return chatMessage;
     }
 
+    @Operation(summary = "add user(websocket)")
     @MessageMapping("/chat.addUser")
     @SendTo("/topic/public")
     public Message addUser(
@@ -129,6 +145,12 @@ public class MessageController {
             SimpMessageHeaderAccessor headerAccessor
     ) {
         headerAccessor.getSessionAttributes().put("username", chatMessage.getSender());
+        RegistrationDTO registrationDTO = new RegistrationDTO();
+        registrationDTO.setUserLogin((String) headerAccessor.getSessionAttributes().put("username", chatMessage.getSender()));
+        registrationDTO.setFirstName((String) headerAccessor.getSessionAttributes().put("username", chatMessage.getSender()));
+        registrationDTO.setLastName((String) headerAccessor.getSessionAttributes().put("username", chatMessage.getSender()));
+        registrationDTO.setUserPassword("12345678");
+        securityController.registration(registrationDTO);
         return chatMessage;
     }
 

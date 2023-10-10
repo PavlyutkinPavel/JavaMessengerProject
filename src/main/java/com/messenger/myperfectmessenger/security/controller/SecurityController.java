@@ -36,5 +36,7 @@ public class SecurityController {
     public ResponseEntity<HttpStatus> registration(@RequestBody RegistrationDTO registrationDTO){
         securityService.registration(registrationDTO);
         return new ResponseEntity<>(HttpStatus.OK);
+//        String registrationConfirmationLink = generateRegistrationConfirmationLink(); // Здесь создайте ссылку для подтверждения регистрации
+//        emailService.sendRegistrationEmail(registrationDTO.getEmail(), registrationConfirmationLink);
     }
 }

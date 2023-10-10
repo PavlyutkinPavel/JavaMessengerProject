@@ -11,7 +11,7 @@
 	<groupId>com.messenger</groupId>
 	<artifactId>MyPerfectMessenger</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<packaging>war</packaging>
+	<packaging>jar</packaging>
 	<name>MyPerfectMessenger</name>
 	<description>MyPerfectMessenger</description>
 	<properties>
@@ -122,6 +122,14 @@
 			<version>6.1.4</version>
 			<scope>test</scope>
 		</dependency>
+
+		<!-- https://mvnrepository.com/artifact/com.sun.mail/jakarta.mail -->
+		<dependency>
+			<groupId>com.sun.mail</groupId>
+			<artifactId>jakarta.mail</artifactId>
+			<version>2.0.1</version>
+		</dependency>
+
 
 	</dependencies>
 

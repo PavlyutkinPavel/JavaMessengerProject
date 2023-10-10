@@ -3,6 +3,7 @@ package com.messenger.myperfectmessenger.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.messenger.myperfectmessenger.domain.Message;
 import com.messenger.myperfectmessenger.domain.MessageType;
+import com.messenger.myperfectmessenger.security.controller.SecurityController;
 import com.messenger.myperfectmessenger.security.filter.JwtAuthenticationFilter;
 import com.messenger.myperfectmessenger.security.service.SecurityService;
 import com.messenger.myperfectmessenger.service.MessageService;
@@ -39,6 +40,9 @@ public class MessageControllerTest {
 
     @MockBean
     SecurityService securityService;
+
+    @MockBean
+    SecurityController securityController;
     static Message message;
     static List<Message> messages;
 
